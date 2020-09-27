@@ -6,7 +6,6 @@ mod characters;
 
 type CharMap = HashMap<&'static str, Vec<&'static str>>;
 
-#[derive(PartialEq)]
 pub enum Mode {
     Show,
     Quiz
@@ -19,28 +18,58 @@ pub struct Options {
     pub consonants: bool,
 }
 
-
-pub fn start_quiz(args: &Options) {
-    let mut quiz_map: CharMap = CharMap::new();
-
-    if args.all {
-        merge(&mut quiz_map, &characters::consonants())
-    } else {
-        if args.consonants {
-            merge(&mut quiz_map, &characters::consonants())
-        }
-        if args.vowels {
-            merge(&mut quiz_map, &characters::vowels())
+pub fn handle_options(args: &Options) {
+    match args.mode {
+        Mode::Quiz => {
+            let mut map = CharMap::new();
+            if args.all {
+                merge(&mut map, &characters::consonants());
+                merge(&mut map, &characters::vowels());
+            } else {
+                if args.consonants {
+                    merge(&mut map, &characters::consonants());
+                }
+                if args.vowels {
+                    merge(&mut map, &characters::vowels()); 
+                }
+            }
+            start_quiz(&map);
+        },
+        Mode::Show => {
+            show();
         }
     }
 
-    if args.mode == Mode::Show {
-        return
-    }
 
+}
+
+fn show() {
+    // TODO Make in order
+    let consonants = characters::consonants();
+    let vowels = characters::vowels();
+    print_map("Consonants", &consonants);
+    print_map("Vowels", &vowels);
+}
+
+fn print_map(kind: &str, map: &CharMap) {
+    println!("--- {} ---", kind);
+    let mut count = 0;
+    for (key, value) in map {
+        print!("{} : {}  \t", key, value.join(", "));
+        count += 1;
+        if count == 5 {
+            print!("\n");
+            io::stdout().flush().unwrap();
+            count = 0;
+        }
+    }
+    println!("\n");
+}
+
+fn start_quiz(quiz_map: &CharMap) {
     let mut correct_keys = HashSet::<&str>::new();
     loop {
-        for (key, value) in &quiz_map {
+        for (key, value) in quiz_map {
             if correct_keys.contains(key) {
                 continue;
             }
