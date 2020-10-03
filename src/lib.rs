@@ -1,10 +1,8 @@
 use std::io::{self, Write};
-use std::collections::HashMap;
 use std::collections::HashSet;
 
 mod characters;
-
-type CharMap = HashMap<&'static str, Vec<&'static str>>;
+use characters::Character;
 
 pub enum Mode {
     Show,
@@ -21,19 +19,19 @@ pub struct Options {
 pub fn handle_options(args: &Options) {
     match args.mode {
         Mode::Quiz => {
-            let mut map = CharMap::new();
+            let mut char_vec: Vec<Character> = Vec::new();
             if args.all {
-                merge(&mut map, &characters::consonants());
-                merge(&mut map, &characters::vowels());
+                char_vec.append(&mut characters::consonants());
+                char_vec.append(&mut characters::vowels());
             } else {
                 if args.consonants {
-                    merge(&mut map, &characters::consonants());
+                    char_vec.append(&mut characters::consonants());
                 }
                 if args.vowels {
-                    merge(&mut map, &characters::vowels()); 
+                    char_vec.append(&mut characters::vowels()); 
                 }
             }
-            start_quiz(&map);
+            start_quiz(&char_vec);
         },
         Mode::Show => {
             show();
@@ -44,18 +42,17 @@ pub fn handle_options(args: &Options) {
 }
 
 fn show() {
-    // TODO Make in order
     let consonants = characters::consonants();
     let vowels = characters::vowels();
-    print_map("Consonants", &consonants);
-    print_map("Vowels", &vowels);
+    print_chars("Consonants", &consonants);
+    print_chars("Vowels", &vowels);
 }
 
-fn print_map(kind: &str, map: &CharMap) {
+fn print_chars(kind: &str, characters: &Vec<Character>) {
     println!("--- {} ---", kind);
     let mut count = 0;
-    for (key, value) in map {
-        print!("{} : {}  \t", key, value.join(", "));
+    for character in characters {
+        print!("{} : {}  \t", character.character, character.readings.join(", "));
         count += 1;
         if count == 5 {
             print!("\n");
@@ -66,47 +63,38 @@ fn print_map(kind: &str, map: &CharMap) {
     println!("\n");
 }
 
-fn start_quiz(quiz_map: &CharMap) {
-    let mut correct_keys = HashSet::<&str>::new();
+fn start_quiz(char_vec: &Vec<Character>) {
+    let mut correct_keys = HashSet::<&String>::new();
     loop {
-        for (key, value) in quiz_map {
-            if correct_keys.contains(key) {
+        for character in char_vec {
+            if correct_keys.contains(&character.character) {
                 continue;
             }
 
-            print!("{} ?: ", key);
+            print!("{} ?: ", character.character);
             io::stdout().flush().unwrap();
             
             let answer = get_answer().unwrap();
             if answer.trim() == "quit" {
-                println!("{}/{}", correct_keys.len(), quiz_map.len());
+                println!("{}/{}", correct_keys.len(), char_vec.len());
                 return
             }
 
             if answer.trim() == "score" {
-                println!("{}/{}", correct_keys.len(), quiz_map.len());
+                println!("{}/{}", correct_keys.len(), char_vec.len());
             }
 
-            if value.contains(&answer.trim()) {
+            if character.readings.contains(&String::from(answer.trim())) {
                 println!("Correct");
-                correct_keys.insert(key);
+                correct_keys.insert(&character.character);
             } else {
                 println!("Wrong!");
             }
         }
 
-        if correct_keys.len() == quiz_map.len() {
+        if correct_keys.len() == char_vec.len() {
             break;
         }
-    }
-}
-
-fn merge(into: &mut CharMap, from: &CharMap) {
-    for (key, value) in from.into_iter() {
-        into.insert(
-            key, 
-            Vec::from(value.clone())
-        );
     }
 }
 
