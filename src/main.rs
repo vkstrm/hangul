@@ -16,9 +16,15 @@ fn main() {
                     .takes_value(false)
             )
             .arg(
-                Arg::with_name("vowel")
+                Arg::with_name("vowels")
                     .short('v')
                     .about("Practice the vowels")
+                    .takes_value(false)
+            )
+            .arg(
+                Arg::with_name("all")
+                    .short('a')
+                    .about("Practice all characters")
                     .takes_value(false)
             )
         )
@@ -31,9 +37,8 @@ fn main() {
         ("quiz", Some(sub_m)) => {
             let options = hangul::Options {
                 mode: hangul::Mode::Quiz,
-                all: sub_m.is_present("consonants") 
-                    && sub_m.is_present("vowels") 
-                    && sub_m.is_present("composites"),
+                all: (sub_m.is_present("consonants") && sub_m.is_present("vowels")) || 
+                (!sub_m.is_present("consonants") && !sub_m.is_present("vowels")),
                 consonants: sub_m.is_present("consonants"),
                 vowels: sub_m.is_present("vowels"),
             };
@@ -48,8 +53,6 @@ fn main() {
             };
             hangul::handle_options(&options);
         },
-        _ => {
-
-        }
+        _ => {}
     }
 }

@@ -37,10 +37,9 @@ pub fn handle_options(args: &Options) {
             show();
         }
     }
-
-
 }
 
+/// Show the character table
 fn show() {
     let consonants = characters::consonants();
     let vowels = characters::vowels();
@@ -48,6 +47,7 @@ fn show() {
     print_chars("Vowels", &vowels);
 }
 
+/// Pretty printing of the character table
 fn print_chars(kind: &str, characters: &Vec<Character>) {
     println!("--- {} ---", kind);
     let mut count = 0;
@@ -63,6 +63,7 @@ fn print_chars(kind: &str, characters: &Vec<Character>) {
     println!("\n");
 }
 
+/// Run the quiz with the passed vector of characters
 fn start_quiz(char_vec: &Vec<Character>) {
     let mut correct_keys = HashSet::<&String>::new();
     loop {
@@ -75,16 +76,20 @@ fn start_quiz(char_vec: &Vec<Character>) {
             io::stdout().flush().unwrap();
             
             let answer = get_answer().unwrap();
-            if answer.trim() == "quit" {
+            let trimmed = answer.trim();
+
+            // Stop the quiz
+            if trimmed == "quit" {
                 println!("{}/{}", correct_keys.len(), char_vec.len());
                 return
             }
 
-            if answer.trim() == "score" {
+            // Show current progress
+            if trimmed == "score" {
                 println!("{}/{}", correct_keys.len(), char_vec.len());
             }
 
-            if character.readings.contains(&String::from(answer.trim())) {
+            if character.readings.contains(&String::from(trimmed)) {
                 println!("Correct");
                 correct_keys.insert(&character.character);
             } else {
@@ -98,6 +103,7 @@ fn start_quiz(char_vec: &Vec<Character>) {
     }
 }
 
+/// Get a string input from stdin
 fn get_answer() -> std::result::Result<String, io::Error> {
     let mut input = String::new();
     match io::stdin().read_line(&mut input) {
